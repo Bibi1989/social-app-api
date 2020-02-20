@@ -23,7 +23,7 @@ module.exports.createPost = async (req, res) => {
   const { username, email, id } = await req.user;
   const { body } = req.body;
   const error = validatePost(body);
-  if (error.body) return res.status(404).json({ error: error });
+  if (error.body) return res.status(404).json({ error: error.body });
   try {
     const post = new Posts({
       id,
@@ -36,6 +36,28 @@ module.exports.createPost = async (req, res) => {
   } catch (error) {
     res.status(404).json({ error: error.message });
   }
+};
+
+module.exports.updatePost = async (req, res) => {
+  const { username, email, id } = await req.user;
+  try {
+    const { updateId } = req.params;
+    const body = req.body;
+    const error = validatePost(body);
+    if (error.body)
+      return res.status(404).json({ error: "Input field is empty" });
+    const updateObj = {
+      id,
+      body,
+      username,
+      email,
+      createdAt: new Date().toISOString()
+    };
+    const post = await Posts.findByIdAndUpdate(updateId, updateObj, {
+      new: true
+    });
+    res.json({ data: post });
+  } catch (error) {}
 };
 
 module.exports.deletePost = async (req, res) => {
@@ -80,7 +102,8 @@ module.exports.createComment = async (req, res) => {
   try {
     const { body } = req.body;
     const { commentId } = req.params;
-    if (body.trim() === "") {
+    const error = validatePost(body);
+    if (error.body) {
       res.status(404).json({ error: "Comment field is empty" });
     }
 
@@ -96,17 +119,18 @@ module.exports.createComment = async (req, res) => {
       await post.save();
       res.json({ data: post });
     } else {
-      throw new UserInputError("Post do not exist");
+      res.status(404).json({ error: "Post do not exist" });
     }
   } catch (error) {
     res.status(404).json({ error: error.message });
   }
 };
 
+
 function validatePost(body) {
   const error = {};
   if (body.trim() === "") {
-    error.body = "Password is empty";
+    error.body = "Body is empty";
   }
   return error;
 }
