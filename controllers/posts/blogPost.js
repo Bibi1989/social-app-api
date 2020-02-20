@@ -51,7 +51,6 @@ module.exports.deletePost = async (req, res) => {
 
 module.exports.likePost = async (req, res) => {
   const user = await req.user;
-  console.log("user", user);
   try {
     const { likeId } = req.params;
     const posts = await Posts.findById(likeId);
@@ -70,6 +69,34 @@ module.exports.likePost = async (req, res) => {
       res.json({ data: posts });
     } else {
       throw new UserInputError("Post is not found");
+    }
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
+
+module.exports.createComment = async (req, res) => {
+  const user = await req.user;
+  try {
+    const { body } = req.body;
+    const { commentId } = req.params;
+    if (body.trim() === "") {
+      res.status(404).json({ error: "Comment field is empty" });
+    }
+
+    const post = await Post.findById(commentId);
+
+    if (post) {
+      post.comments.unshift({
+        body,
+        username: user.username,
+        createdAt: new Date().toISOString()
+      });
+
+      await post.save();
+      res.json({ data: post });
+    } else {
+      throw new UserInputError("Post do not exist");
     }
   } catch (error) {
     res.status(404).json({ error: error.message });
