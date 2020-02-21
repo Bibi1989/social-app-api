@@ -133,15 +133,15 @@ module.exports.deleteComment = async (req, res) => {
 
   const { postId } = req.params;
 
-  console.log(req.body.id);
   try {
     const post = await Posts.findById(postId);
     if (post) {
       const finded = post.comments.find(comment => comment.id === req.body.id);
-      console.log("finded ", finded);
       if (finded) {
-        const filtered = post.comments.filter(comment => comment.id !== req.body.id);
-        post.comments = filtered
+        const filtered = post.comments.filter(
+          comment => comment.id !== req.body.id
+        );
+        post.comments = filtered;
         await post.save();
       }
     }
@@ -149,6 +149,23 @@ module.exports.deleteComment = async (req, res) => {
   } catch (error) {
     res.status(404).json({ error: error.message });
   }
+};
+
+module.exports.updateComment = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { body } = req.body;
+    const error = validatePost(body);
+    if (error.body)
+      return res.status(404).json({ error: "comment body is empty" });
+    const post = await Posts.findById(postId);
+    if (post) {
+      const finded = post.comments.find(comment => comment.id === req.body.id);
+      finded.body = body;
+      await post.save();
+    }
+    res.json({ data: post });
+  } catch (error) {}
 };
 
 function validatePost(body) {

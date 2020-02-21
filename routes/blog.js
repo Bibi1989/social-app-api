@@ -7,7 +7,8 @@ const {
   deletePost,
   likePost,
   createComment,
-  deleteComment
+  updateComment,
+  deleteComment,
 } = require("../controllers/posts/blogPost");
 const { auth } = require("../controllers/auth/auth");
 const router = express.Router();
@@ -25,8 +26,10 @@ router.post("/likes/:likeId", auth, likePost);
 
 router.post("/comments/:commentId", auth, createComment);
 
-router.delete("/posts/:deleteId", auth, deletePost);
+router.patch("/comments/:postId", auth, updateComment);
 
 router.delete("/comments/:postId", auth, deleteComment);
+
+router.delete("/posts/:deleteId", auth, deletePost);
 
 module.exports = router;
