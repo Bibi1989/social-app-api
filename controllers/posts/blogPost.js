@@ -42,7 +42,7 @@ module.exports.updatePost = async (req, res) => {
   const { username, email, id } = await req.user;
   try {
     const { updateId } = req.params;
-    const body = req.body;
+    const { body } = req.body;
     const error = validatePost(body);
     if (error.body)
       return res.status(404).json({ error: "Input field is empty" });
@@ -88,7 +88,7 @@ module.exports.likePost = async (req, res) => {
         });
       }
       await posts.save();
-      res.json({ data: posts });
+      res.json({ data: posts, likeCount: posts.likes.length });
     } else {
       throw new UserInputError("Post is not found");
     }
@@ -107,7 +107,7 @@ module.exports.createComment = async (req, res) => {
       res.status(404).json({ error: "Comment field is empty" });
     }
 
-    const post = await Post.findById(commentId);
+    const post = await Posts.findById(commentId);
 
     if (post) {
       post.comments.unshift({
@@ -117,15 +117,39 @@ module.exports.createComment = async (req, res) => {
       });
 
       await post.save();
-      res.json({ data: post });
+      console.log(post.comments[0]._id);
+      res.json({ data: post, commentsCount: post.comments.length });
     } else {
       res.status(404).json({ error: "Post do not exist" });
     }
   } catch (error) {
+    console.log("caught here");
     res.status(404).json({ error: error.message });
   }
 };
 
+module.exports.deleteComment = async (req, res) => {
+  const user = req.user;
+
+  const { postId } = req.params;
+
+  console.log(req.body.id);
+  try {
+    const post = await Posts.findById(postId);
+    if (post) {
+      const finded = post.comments.find(comment => comment.id === req.body.id);
+      console.log("finded ", finded);
+      if (finded) {
+        const filtered = post.comments.filter(comment => comment.id !== req.body.id);
+        post.comments = filtered
+        await post.save();
+      }
+    }
+    res.json({ data: post });
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+};
 
 function validatePost(body) {
   const error = {};

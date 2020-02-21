@@ -9,7 +9,7 @@ dotenv.config();
 const uri = process.env["DATA_URL"];
 
 mongoose
-  .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(uri, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false })
   .then(() => console.log(`DB CONNECTED`))
   .catch(() => console.log(`DB Error`));
 
